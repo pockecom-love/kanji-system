@@ -16,19 +16,19 @@
 		; =======================================================
 		; 設定
 		; =======================================================
-TARGET		equ   1360	; PC-1350は 1350、PC-1360/60Kは 1360 を指定
-KANJI		equ   7		; 漢字フォントの横ドット数(5 or 7 or 11)を指定
-COLUMN		equ   37	; 桁数(25 or 30 or 37)を指定
+TARGET		equ   1350	; PC-1350は 1350、PC-1360/60Kは 1360 を指定
+KANJI		equ   5		; 漢字フォントの横ドット数(5 or 7 or 11)を指定
+COLUMN		equ   30	; 桁数(25 or 30 or 37)を指定
 				;  (11ドット漢字フォント使用時は37指定不可)
 FONT		equ   1		; フォント読み込み…1
 TEXT		equ   1		; テキストデータ読み込み…1
 
 				; --- ツールの設定 ---
-TOOL		equ   3		; 同梱ツールの選択
+TOOL		equ   1		; 同梱ツールの選択
 				;  (1…全角順次表示、2…テキスト表示
 				;   3…テキストビューア、4…ベンチマークテスト)
 NOSCROLLUP	equ   0		; [TOOL1]スクロールアップなし…1
-KEYSTOP		equ   0		; [TOOL1,2]キーストップする…1
+KEYSTOP		equ   1		; [TOOL1,2]キーストップする…1
 KEYSCAN		equ   1		; [TOOL1,2,3]キー入力ルーチン(1…有効)
 CRMARK		equ   1		; [TOOL3]改行マーク(1…表示)
 
@@ -218,9 +218,9 @@ ALL_JMP2:	RTN
 		; 入力 (30,31) = JISコード
 		; =======================================================
 JIS_LINE:
-		if KANJI = 5		; 漢字5ドットフォントの場合
+		if (KANJI = 5) & (COLUMN = 25)	; 漢字5ドットフォントの場合
 			LIA   COLUMN - 1
-		else			; 漢字7or11ドットフォントの場合
+		else				; 漢字7or11ドットフォントの場合
 			LIA   COLUMN / 2 - 1
 		endif
 		PUSH			; 1行分ループ
@@ -1186,12 +1186,12 @@ KEY_LOOP1:	CALL  INKEY_WAIT
 		; ワーク (32) リピートフラグ
 		;        (33,34) オートパワーオフタイマー
 		; =======================================================
-INKEY_WAIT:	CAL   INKEY
+INKEY_WAIT:	CAL   INKEY		; リアルタイムキースキャン
 		CAL   T6WAIT		; 6ms待ち
-		JRNCP INKEY_JMP1	; キー入力あり
+		JRNCP INKEY_JMP1	; キー入力がない場合
 		CALL  TIMER_RESET	;     オートパワーオフタイマーリセット
 		RTN
-
+					; キー入力ありの場合
 INKEY_JMP1:	LP    $32		; キーリピートOFF(0)
 		ANIM  $00
 		CLRA			; オートパワーオフタイマー + 1
@@ -1200,11 +1200,11 @@ INKEY_JMP1:	LP    $32		; キーリピートOFF(0)
 		ADCM			; (34) = (34) + 0 + 1
 		LP    $33
 		ADCM			; (33) = (33) + C
-		CPIM  120		; 120*2.5s=300秒でオートパワーオフ
+		CPIM  200		; 200*1.5s=300秒でオートパワーオフ
 		JRCM  INKEY_WAIT
 		CALL  TIMER_RESET	;     オートパワーオフタイマーリセット
 		LIA   $0C
-		CAL   OUTC		;     パワーオフ
+		CAL   OUTC		;     パワーオフ(OUTC ← $0C)
 		RTN
 
 
