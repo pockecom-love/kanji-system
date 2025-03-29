@@ -29,7 +29,7 @@ SC61 kanji.s /b
 
 ## 設定
 
-```
+```ruby
 TARGET		equ   1360	; PC-1350は 1350、PC-1360/60Kは 1360 を指定
 KANJI		equ   7		; 漢字フォントの横ドット数(5 or 7 or 11)を指定
 COLUMN		equ   37	; 桁数(25 or 30 or 37)を指定
@@ -73,6 +73,13 @@ LINE_MAX		equ   255
 ポケコンエミュレータ [Pokecom Go](https://digihori.jimdofree.com/index/emulator/)での実行画面です。
 
 25桁モード（注文の多い料理店より）
-![25桁モード](./images/kanji2.jpg)
+![25桁モード](./images/kanji2.jpg)  
+
 25桁モード（JISコード表）
-![25桁モード](./images/kanji3.jpg)
+![25桁モード](./images/kanji3.jpg)  
+
+30桁モード（注文の多い料理店より）
+![30桁モード](./images/kanji5.jpg)  
+
+37桁モード（独習SC61860より）
+![37桁モード](./images/kanji4.jpg)  
