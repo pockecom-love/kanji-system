@@ -29,7 +29,7 @@ SC61 kanji.s /b
 
 ## 設定 Setting
 
-```ruby
+```assembly
 TARGET		equ   1360	; PC-1350は 1350、PC-1360/60Kは 1360 を指定
 KANJI		equ   7		; 漢字フォントの横ドット数(5 or 7 or 11)を指定
 COLUMN		equ   37	; 桁数(25 or 30 or 37)を指定
@@ -87,6 +87,10 @@ LINE_MAX		equ   255
 
 37桁モード（独習SC61860より）
 ![37桁モード](./images/kanji4.jpg)  
+
+同梱ツール 簡易テキストビューア  
+
+https://github.com/user-attachments/assets/a2e176e7-c2c4-47c7-a821-b7a3e0fcdc25
 
 ## ライセンス License
  
