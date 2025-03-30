@@ -16,15 +16,15 @@
 		; =======================================================
 		; 設定
 		; =======================================================
-TARGET		equ   1350	; PC-1350は 1350、PC-1360/60Kは 1360 を指定
-KANJI		equ   5		; 漢字フォントの横ドット数(5 or 7 or 11)を指定
+TARGET		equ   1360	; PC-1350は 1350、PC-1360/60Kは 1360 を指定
+KANJI		equ   7		; 漢字フォントの横ドット数(5 or 7 or 11)を指定
 COLUMN		equ   30	; 桁数(25 or 30 or 37)を指定
 				;  (11ドット漢字フォント使用時は37指定不可)
 FONT		equ   1		; フォント読み込み…1
 TEXT		equ   1		; テキストデータ読み込み…1
 
 				; --- ツールの設定 ---
-TOOL		equ   1		; 同梱ツールの選択
+TOOL		equ   3		; 同梱ツールの選択
 				;  (1…全角順次表示、2…テキスト表示
 				;   3…テキストビューア、4…ベンチマークテスト)
 NOSCROLLUP	equ   0		; [TOOL1]スクロールアップなし…1
@@ -226,7 +226,7 @@ JIS_LINE:
 		PUSH			; 1行分ループ
 		LP    A_Reg
 		LIQ   $30
-		MVB			; AB = (34,35)
+		MVB			; AB = (30,31)
 JISLIN_LOOP1:	CALL  JIS_PRINT
 		JRCP  JISLIN_JMP1
 		LOOP  JISLIN_LOOP1
@@ -235,7 +235,7 @@ JISLIN_LOOP1:	CALL  JIS_PRINT
 JISLIN_JMP1:	POP
 JISLIN_JMP2:	LP    $30
 		LIQ   A_Reg
-		MVB			; (34,35) = AB
+		MVB			; (30,31) = AB
 		RTN
 
 
@@ -314,6 +314,9 @@ JISPRT_JMP3:	RC			;     C = 0
 		if TOOL = 3
 
 TEXT_VIEWER:	CALL  TIMER_RESET	; オートパワーオフタイマーリセット
+		LP    $32		; キーリピートフラグON
+		LIA   1			; 起動時のEnterキーをキャンセルするため
+		EXAM
 		LII   9
 		CLRA
 		LIDP  LINENUMBER_BUF
@@ -407,9 +410,6 @@ TEXT_INIT:	CALL  CLS_START		; 画面クリア
 		LIB   (TEXT_DATA - 1) >> 8
 		LIA   (TEXT_DATA - 1) & $FF
 		CAL   TOX		; X = テキストデータ - 1
-		LP    $32		; キーリピートフラグON
-		LIA   1			; 起動時のEnterキーをキャンセルするため
-		EXAM
 		CLRA
 		CALL  LINE_REGISTER	; 0行目登録
 		LP    $35		; 表示行番号 = 0
