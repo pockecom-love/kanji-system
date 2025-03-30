@@ -1,33 +1,33 @@
 # kanji-system
-## ポケコン用漢字表示システム
+## ポケコン用漢字表示システム Kanji character display system for Pocket Computer
 
 シャープ製ポケットコンピュータ **PC-1350/60/60K用漢字表示システム**
 by **けいくん＠ちた** ([@pockecom_love](https://x.com/pockecom_love))
 
 ![37桁モード](./images/kanji1.jpg)
 
-## 対象機種
+## 対象機種 Target Machine
 
 ・PC-1350 （要16KB RAMカード）  
 ・PC-1360/K （要32KB RAMカード）
 
-## 開発言語
+## 開発言語 Development Language
 
 ・SC61860アセンブラ（[SC61860 CROSS ASSEMBLER](https://hd61700.yukimizake.net/SC61860/index.html)）
 
-## 主な機能
+## 主な機能 Main Functions
 
 ・表示モード：25桁4行（全角12桁4行、全角25桁4行）、30桁4行（全角15桁4行）、37桁4行（全角18桁4行）  
 ・漢字フォント：6x8ドット日本語フォント（実質5x7ドット）、8x8ドット日本語フォント（実質7x7ドット）、12x8日本語フォント（実質11x7ドット）  
 ・半角フォント：4x7ドット独自フォント、5x7ドットシステムフォント
 
-## アセンブル方法
+## アセンブル方法 Assembly Method
 
 ```
 SC61 kanji.s /b
 ```
 
-## 設定
+## 設定 Setting
 
 ```ruby
 TARGET		equ   1360	; PC-1350は 1350、PC-1360/60Kは 1360 を指定
@@ -64,11 +64,15 @@ LINE_MAX		equ   255
 		endif
 ```
 
-## 謝辞
+## 謝辞 Thanks
 
-[Little Limit](https://littlelimit.net/font.htm) で公開されている極小日本語フォントを利用させていただきました。素晴らしいフォントを開発、公開してくださりありがとうございます。
+[Little Limit](https://littlelimit.net/font.htm) で公開されている極小日本語フォントを利用しました。素晴らしいフォントを開発、公開してくださりありがとうございます。  
 
-## 実行例
+[SC61860 Lab.](https://hd61700.yukimizake.net/) で公開されているクロスアセンブラ [SC61860 CROSS ASSEMBLER](https://hd61700.yukimizake.net/SC61860/index.html) を利用しました。高性能なアセンブラを開発、公開してくださりありがとうございます。  
+
+[ポケコンfanのページ](https://digihori.jimdofree.com/) で公開されているポケコンエミュレータ [Pokecom GO](https://digihori.jimdofree.com/index/emulator/) を動作確認などに利用しました。素晴らしいソフトウェアを開発、公開してくださりありがとうございます。
+
+## 実行例 Execution example
 
 ポケコンエミュレータ [Pokecom Go](https://digihori.jimdofree.com/index/emulator/)での実行画面です。
 
@@ -83,3 +87,7 @@ LINE_MAX		equ   255
 
 37桁モード（独習SC61860より）
 ![37桁モード](./images/kanji4.jpg)  
+
+## ライセンス License
+ 
+The source code is licensed MIT. The website content is licensed CC BY 4.0,see LICENSE.
