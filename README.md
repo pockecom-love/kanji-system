@@ -6,22 +6,33 @@ by **けいくん＠ちた** ([@pockecom_love](https://x.com/pockecom_love))
 
 ![37桁モード](./images/kanji1.jpg)
 
-## 対象機種 Target Machine
+## 対象機種 Target machine
 
 ・PC-1350 （要16KB RAMカード）  
 ・PC-1360/K （要32KB RAMカード）
 
-## 開発言語 Development Language
+## 開発言語 Development language
 
 ・SC61860アセンブラ（[SC61860 CROSS ASSEMBLER](https://hd61700.yukimizake.net/SC61860/index.html)）
 
-## 主な機能 Main Functions
+## 主な機能 Main functions
 
-・表示モード：25桁4行（全角12桁4行、全角25桁4行）、30桁4行（全角15桁4行）、37桁4行（全角18桁4行）  
-・漢字フォント：6x8ドット日本語フォント（実質5x7ドット）、8x8ドット日本語フォント（実質7x7ドット）、12x8日本語フォント（実質11x7ドット）  
-・半角フォント：4x7ドット独自フォント、5x7ドットシステムフォント
+<table>
+<tr>
+ <th>表示モード</th>
+ <td>25桁4行<br>(全角12文字4行、25文字4行)</td>
+ <td>30桁4行<br>(全角15文字4行)</td>
+ <td>37桁4行<br>(全角18文字4行)</td></tr>
+</table>
 
-## アセンブル方法 Assembly Method
+## 対応フォント Supported fonts
+
+<table>
+<tr><th>漢字フォント</th><td>11x7ドット</td><td>7x7ドット</td><td>5x7ドット</td></tr>
+<tr><th>半角フォント</th><td>5x7ドット</td><td>4x7ドット</td></tr>
+</table>
+
+## アセンブル方法 Assembly method
 
 ```
 SC61 kanji.s /b
@@ -65,31 +76,29 @@ LINE_MAX		equ   255
 ```
 
 ## 謝辞 Thanks
+* [Little Limit](https://littlelimit.net/font.htm) で公開されている極小日本語フォントを利用しました。素晴らしいフォントを開発、公開してくださりありがとうございます。  
 
-[Little Limit](https://littlelimit.net/font.htm) で公開されている極小日本語フォントを利用しました。素晴らしいフォントを開発、公開してくださりありがとうございます。  
+* [SC61860 Lab.](https://hd61700.yukimizake.net/) で公開されているクロスアセンブラ [SC61860 CROSS ASSEMBLER](https://hd61700.yukimizake.net/SC61860/index.html) を利用しました。高性能なアセンブラを開発、公開してくださりありがとうございます。  
 
-[SC61860 Lab.](https://hd61700.yukimizake.net/) で公開されているクロスアセンブラ [SC61860 CROSS ASSEMBLER](https://hd61700.yukimizake.net/SC61860/index.html) を利用しました。高性能なアセンブラを開発、公開してくださりありがとうございます。  
-
-[ポケコンfanのページ](https://digihori.jimdofree.com/) で公開されているポケコンエミュレータ [Pokecom GO](https://digihori.jimdofree.com/index/emulator/) を動作確認などに利用しました。素晴らしいソフトウェアを開発、公開してくださりありがとうございます。
+* [ポケコンfanのページ](https://digihori.jimdofree.com/) で公開されているポケコンエミュレータ [Pokecom GO](https://digihori.jimdofree.com/index/emulator/) を動作確認などに利用しました。素晴らしいソフトウェアを開発、公開してくださりありがとうございます。
 
 ## 実行例 Execution example
 
 ポケコンエミュレータ [Pokecom Go](https://digihori.jimdofree.com/index/emulator/)での実行画面です。
 
-25桁モード（注文の多い料理店より）
+* 25桁モード（注文の多い料理店より）
 ![25桁モード](./images/kanji2.jpg)  
 
-25桁モード（JISコード表）
+* 25桁モード（JISコード表）
 ![25桁モード](./images/kanji3.jpg)  
 
-30桁モード（注文の多い料理店より）
+* 30桁モード（注文の多い料理店より）
 ![30桁モード](./images/kanji5.jpg)  
 
-37桁モード（独習SC61860より）
+* 37桁モード（独習SC61860より）
 ![37桁モード](./images/kanji4.jpg)  
 
-同梱ツール 簡易テキストビューア  
-
+* 同梱ツール 簡易テキストビューア  
 https://github.com/user-attachments/assets/a2e176e7-c2c4-47c7-a821-b7a3e0fcdc25
 
 ## ライセンス License
