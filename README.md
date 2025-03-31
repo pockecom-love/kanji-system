@@ -99,6 +99,7 @@ LINE_MAX		equ   255
 ![37桁モード](./images/kanji4.jpg)  
 
 * 同梱ツール 簡易テキストビューア  
+
 https://github.com/user-attachments/assets/a2e176e7-c2c4-47c7-a821-b7a3e0fcdc25
 
 ## ライセンス License
