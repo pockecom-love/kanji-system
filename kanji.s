@@ -1,24 +1,30 @@
-		; +============================================+
-		; |  PC-1350/60/60K 漢字表示システム           |
-		; |                       by けいくん＠ちた    |
-		; |                          (@pockecom_love)  |
-		; |                                            |
-		; |  表示モード：25桁4行, 30桁4行, 37桁4行     |
-		; |  漢字フォント：5x7dot, 7x7dot, 11x7dot     |
-		; |  半角フォント：4x7dot, 5x7dot              |
-		; |                                            |
-		; |  [謝辞]                                    |
-		; |  サイト Little Limit で公開されている日本  |
-		; |  語フォントを利用させていただきました。    |
-		; |  https://littlelimit.net/font.htm          |
-		; +============================================+
+; +========================================================+
+; |  ポケットコンピュータ PC-1350/60/60K 漢字表示システム  |
+; |                           (C) けいくん＠ちた           |
+; |                           (X account @pockecom_love)   |
+; |                                                        |
+; |  [表示モード]    25桁4行, 30桁4行, 37桁4行             |
+; |  [漢字フォント]  5x7dot, 7x7dot, 11x7dot               |
+; |  [半角フォント]  4x7dot, 5x7dot                        |
+; |                                                        |
+; |  [一次配布サイト]                                      |
+; |  https://github.com/pockecom-love/kanji-system         |
+; |                                                        |
+; |  [License] MIT                                         |
+; |                                                        |
+; |  [謝辞]                                                |
+; |  サイト Little Limit で公開されている極小日本語フォン  |
+; |  トを利用させていただきました。                        |
+; |  https://littlelimit.net/font.htm                      |
+; |                                                        |
+; +========================================================+
 
 		; =======================================================
 		; 設定
 		; =======================================================
 TARGET		equ   1360	; PC-1350は 1350、PC-1360/60Kは 1360 を指定
 KANJI		equ   7		; 漢字フォントの横ドット数(5 or 7 or 11)を指定
-COLUMN		equ   30	; 桁数(25 or 30 or 37)を指定
+COLUMN		equ   37	; 桁数(25 or 30 or 37)を指定
 				;  (11ドット漢字フォント使用時は37指定不可)
 FONT		equ   1		; フォント読み込み…1
 TEXT		equ   1		; テキストデータ読み込み…1
@@ -63,12 +69,14 @@ LINE_MAX		equ   255
 				org   LOAD_ADR
 			endif
 
+			; 4ドット半角文字フォント読み込み
 			if FONT = 1
 				include(ascii4_font.s)
 			else
 ASCII4_FONT			equ   LOAD_ADR
 			endif
 
+			; 5ドット漢字フォント読み込み
 			if KANJI = 5
 				if FONT = 1
 					include(kanji5_font.s)
@@ -77,6 +85,8 @@ KANJI_FONT				equ   LOAD_ADR + $0280
 				endif
 END_CODE			equ   $4F54		; 全角フォント最終JISコード + 1
 			endif
+
+			; 7ドット漢字フォント読み込み
 			if KANJI = 7
 				if FONT = 1
 					include(kanji7_font_1350.s)
@@ -85,6 +95,8 @@ KANJI_FONT				equ   LOAD_ADR + $0280
 				endif
 END_CODE			equ   $454A		; 全角フォント最終JISコード + 1
 			endif
+
+			; 11ドット漢字フォント読み込み
 			if KANJI = 11
 				if FONT = 1
 					include(kanji11_font_1350.s)
@@ -102,12 +114,14 @@ END_CODE			equ   $3B60		; 全角フォント最終JISコード + 1
 				org   LOAD_ADR
 			endif
 
+			; 4ドット半角文字フォント読み込み
 			if FONT = 1
 				include(ascii4_font.s)
 			else
 ASCII4_FONT			equ   LOAD_ADR
 			endif
 
+			; 5ドット漢字フォント読み込み
 			if KANJI = 5
 				if FONT = 1
 					include(kanji5_font.s)
@@ -116,6 +130,8 @@ KANJI_FONT				equ   LOAD_ADR + $0280
 				endif
 END_CODE			equ   $4F54		; 全角フォント最終JISコード + 1
 			endif
+
+			; 7ドット漢字フォント読み込み
 			if KANJI = 7
 				if FONT = 1
 					include(kanji7_font_1360.s)
@@ -124,6 +140,8 @@ KANJI_FONT				equ   LOAD_ADR + $0280
 				endif
 END_CODE			equ   $4F54		; 全角フォント最終JISコード + 1
 			endif
+
+			; 11ドット漢字フォント読み込み
 			if KANJI = 11
 				if FONT = 1
 					include(kanji11_font_1360.s)
@@ -403,6 +421,7 @@ TEXT_JMP6:	ORID  $01		; SHIFTインジケータ点灯
 		; ----------------------- CLSキー処理 -----------------------
 TEXT_END:	LIDP  INDICATOR_ADR
 		ANID  $FE		; SHIFTインジケータ消去
+		CALL  CLS_START		; 画面クリア
 		RTN
 
 		; ----------------------- 初期4行表示 -----------------------
@@ -555,6 +574,8 @@ LINE_JMP1:	RTN
 
 		; =======================================================
 		; [TOOL4]2000文字出力ベンチマークテスト
+		;
+		; ※ PRINT_FLAG = 1 にして「文字列表示(API)」を有効にしてください
 		; =======================================================
 		if TOOL = 4
 
@@ -565,50 +586,6 @@ BENCH_LOOP1:	CALL  STRING_PRINT
 		db    "**PC-1350/PC-1360K**", 0
 		LOOP  BENCH_LOOP1
 		RTN
-
-		endif
-
-
-
-		; =======================================================
-		; [TOOL5]開発用
-		; =======================================================
-		if TOOL = 5
-
-		CALL  CLS_START
-KAIHATSU_LOOP1:	CALL  KEY_REPEAT
-		CPIA  Key_SHIFT
-		JRNZP KAIHATSU_JMP2
-		LIDP  INDICATOR_ADR
-		TSID  $01
-		JRZP  KAIHATSU_JMP1
-		ANID  $FE
-		JRM   KAIHATSU_LOOP1
-KAIHATSU_JMP1:	ORID  $01
-		JRM   KAIHATSU_LOOP1
-KAIHATSU_JMP2:	CPIA  Key_CLS
-		JRZP  KAIHATSU_END
-		PUSH
-		SWP
-		ANIA  $0F
-		ORIA  $30
-		CPIA  $3A
-		JRCP  KAIHATSU_JMP3
-		ADIA  7
-KAIHATSU_JMP3:	LIDP  KAIHATSU_STR + 1
-		STD
-		POP
-		ANIA  $0F
-		ORIA  $30
-		CPIA  $3A
-		JRCP  KAIHATSU_JMP4
-		ADIA  7
-KAIHATSU_JMP4:	LIDP  KAIHATSU_STR + 2
-		STD
-		CALL  STRING_PRINT
-KAIHATSU_STR:	db    '[', 0, 0, '] ', 0
-		JRM   KAIHATSU_LOOP1
-KAIHATSU_END:	RTN
 
 		endif
 
