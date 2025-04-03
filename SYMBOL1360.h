@@ -38,6 +38,7 @@ DSPTOY		equ   $11CE	; Y = FD80 - 1 (テキストバッファ)
 CULC		equ   $0000	; 式評価  (※不明。ダミー値)
 Check		equ   $18A3	; 文字列チェック
 CLRSCR		equ   $14B6	; テキストバッファクリア(FD80-FDDF)
+CLRTEXT		equ   $14C8	; 入力バッファクリア(FD20-FD7F))
 ;PRINT		equ   $____	; テキストバッファ表示
 T6WAIT		equ   $13B7	; 6ms待ち
 
@@ -45,7 +46,8 @@ T6WAIT		equ   $13B7	; 6ms待ち
 ; ワークエリア
 ; =================================================================
 STR_BUF		equ   $FC60	; 文字列バッファ(FC60-FCAF)
-DSP_BUF		equ   $FD80	; テキストバッファ
+INP_BUF		equ   $FD20	; 入力バッファ(FD20-FD6F)
+DSP_BUF		equ   $FD80	; テキストバッファ(FD80-FD6F)
 CSRX		equ   $FD09	; CURSOR X座標(0-24)
 CSRY		equ   $FD0A	; CURSOR Y座標(0-3)
 VRAM		equ   $2800	; VRAMアドレス

@@ -34,15 +34,17 @@ DSPTOX		equ   $02A3	; X = 6D00 - 1 (テキストバッファ)
 DSPTOY		equ   $02AA	; Y = &D00 - 1 (テキストバッファ)
 CULC		equ   $0AB8	; 式評価
 Check		equ   $1410	; 文字列チェック
-CLRSCR		equ   $1E0C	; テキストバッファクリア
+CLRSCR		equ   $1E0C	; テキストバッファクリア(6D00-6D5F)
+CLRTEXT		equ   $1C1C	; 入力バッファクリア(6EB0-6EFF))
 PRINT		equ   $1DDF	; テキストバッファ表示
-T6WAIT		equ   $09E8	; 8mm秒待ち
+T6WAIT		equ   $09E8	; 6mm秒待ち
 
 ; =================================================================
 ; ワークエリア
 ; =================================================================
 STR_BUF		equ   $6E60	; 文字列バッファ(6E60-6EAF)
-DSP_BUF		equ   $6D00	; テキストVRAM(6D00-6D5F)
+INP_BUF		equ   $6EB0	; 入力バッファ(6EB0-6EFF)
+DSP_BUF		equ   $6D00	; テキストバッファ(6D00-6D5F)
 CSRX		equ   $788B	; CURSOR X座標(0-24)
 CSRY		equ   $788C	; CURSOR Y座標(0-3)
 VRAM		equ   $7000	; VRAMアドレス

@@ -22,9 +22,9 @@
 		; =======================================================
 		; 設定
 		; =======================================================
-TARGET		equ   1360	; PC-1350は 1350、PC-1360/60Kは 1360 を指定
-KANJI		equ   7		; 漢字フォントの横ドット数(5 or 7 or 11)を指定
-COLUMN		equ   37	; 桁数(25 or 30 or 37)を指定
+TARGET		equ   1350	; PC-1350は 1350、PC-1360/60Kは 1360 を指定
+KANJI		equ   5		; 漢字フォントの横ドット数(5 or 7 or 11)を指定
+COLUMN		equ   25	; 桁数(25 or 30 or 37)を指定
 				;  (11ドット漢字フォント使用時は37指定不可)
 FONT		equ   1		; フォント読み込み…1
 TEXT		equ   1		; テキストデータ読み込み…1
@@ -36,7 +36,7 @@ TOOL		equ   3		; 同梱ツールの選択
 NOSCROLLUP	equ   0		; [TOOL1]スクロールアップなし…1
 KEYSTOP		equ   1		; [TOOL1,2]キーストップする…1
 KEYSCAN		equ   1		; [TOOL1,2,3]キー入力ルーチン(1…有効)
-CRMARK		equ   1		; [TOOL3]改行マーク(1…表示)
+CRMARK		equ   0		; [TOOL3]改行マーク(1…表示)
 
 				; --- おまけ ---
 STRING_FLAG	equ   0		; 文字列表示(API)(1…有効)
@@ -44,8 +44,8 @@ CURSOR_FLAG	equ   0		; カーソル設定(API)(1…有効)
 PRINT_FLAG	equ   0		; 拡張PRINT文(1…有効) ※ PC-1350専用
 
 		if TARGET = 1350
-LOAD_ADR		equ   $2040	; オブジェクトロードアドレス
-TOOL_ADR		equ   $6960	; ツール先頭アドレス
+LOAD_ADR		equ   $2032	; オブジェクトロードアドレス
+TOOL_ADR		equ   $6990	; ツール先頭アドレス
 LINENUMBER_BUF		equ   $6D00	; [TOOL3]行番号ポインタバッファ
 LINE_MAX		equ   127	; [TOOL3]最大行番号(4～255)
 		else
