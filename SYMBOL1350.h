@@ -49,6 +49,7 @@ CSRX		equ   $788B	; CURSOR X座標(0-24)
 CSRY		equ   $788C	; CURSOR Y座標(0-3)
 VRAM		equ   $7000	; VRAMアドレス
 FONT_ADR	equ   $808A	; キャラクタフォントアドレス
+KEY_TABLE	equ   $8403	; キーテーブル
 INDICATOR_ADR   equ   $783C     ; MODEインジケータ
 
 ; =================================================================
@@ -70,18 +71,33 @@ FO_Port		equ   $5E
 OUTC_Port	equ   $5F
 
 ; =================================================================
-; INKEYコード
+; INKEYキーコード
 ; =================================================================
-Key_SPC		equ   $0D
-Key_CLS		equ   $0E
-Key_MODE	equ   $09
-Key_ENTER	equ   $11
-Key_RIGHT	equ   $3B
-Key_LEFT	equ   $3C
-Key_DOWN	equ   $3D
-Key_UP		equ   $3E
-Key_BREAK	equ   $3F
-Key_SHIFT       equ   $15
+Inkey_SPC	equ   $0D
+Inkey_CLS	equ   $0E
+Inkey_MODE	equ   $09
+Inkey_ENTER	equ   $11
+Inkey_RIGHT	equ   $3B
+Inkey_LEFT	equ   $3C
+Inkey_DOWN	equ   $3D
+Inkey_UP	equ   $3E
+Inkey_BREAK	equ   $3F
+Inkey_SHIFT	equ   $15
+
+; =================================================================
+; BASIC内部コード
+; =================================================================
+ASC_SPC		equ   $20
+ASC_CLS		equ   $02
+ASC_MODE	equ   $08	; マシン語ブックp.13 表6は間違い
+ASC_ENTER	equ   $0D
+ASC_RIGHT	equ   $0E
+ASC_LEFT	equ   $0F
+ASC_DOWN	equ   $05
+ASC_UP		equ   $04
+ASC_BREAK	equ   $07
+ASC_SHIFT	equ   $10
+ASC_DEF		equ   $12
 
 ; =================================================================
 ; その他

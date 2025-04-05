@@ -10,14 +10,6 @@
 ; |                                                        |
 ; +========================================================+
 
-;   0         1         2         3
-;   0123456789012345678901234567890
-; ┌───────────────┐
-; │6700 00112233-44556677:XX [12]│
-; │6700 00112233-44556677:XX [12]│
-; │6700 00112233-44556677:XX [12]│
-; │6700 0011223344556677 12345678│
-; └───────────────┘
 
 
 		; =======================================================
@@ -32,29 +24,46 @@ TARGET		equ   1350	; PC-1350は 1350、PC-1360/60Kは 1360 を指定
 		; =======================================================
 		nolist
 		if TARGET = 1350
-			org   $6800	; オブジェクトロードアドレス
+			org   $6600	; オブジェクトロードアドレス
 			include(SYMBOL1350.h)
+HEX_A			equ   '('
+HEX_B			equ   '/'
+HEX_C			equ   '*'
+HEX_D			equ   '-'
+HEX_E			equ   '+'
+HEX_F			equ   '.'
 		else
-			org   $F300
+			org   $F200
 			include(SYMBOL1360.h)
+HEX_A			equ   ','
+HEX_B			equ   '/'
+HEX_C			equ   '*'
+HEX_D			equ   '-'
+HEX_E			equ   '+'
+HEX_F			equ   '.'
 		endif
 		list
 
 
 
 		; =======================================================
-		; 30桁表示マシン語モニター
+		; 30桁表示マシン語モニター for PC-1350
 		;
-		; ワーク (2F) 編集モード(1…ON、0…OFF)
+		; ワーク (2E) モード
+		;             bit0  1…キャラ表示、0…グラフィック表示
+		;             bit1  1…編集モード、0…閲覧モード
+		;             bit2  1…カーソルON、0…カーソルOFF
+		;        (2F) 編集用ニブル位置(0-15)
 		;        (30,31) X座標,Y座標
 		;        (32) キーリピートフラグ
 		;        (33,34) オートパワーオフタイマー
 		;        (35,36) 1行目の表示アドレス(L,H)
 		;        (37) チェックサム
+		;        (38,39) Xレジスタ退避用
 		; =======================================================
-MONITOR:	LII   8
+MONITOR:	LII   9
 		CLRA
-		LP    $2F
+		LP    $2E
 		FILM			; ワーククリア
 		IXL
 		CPIA  ','		; カンマでなければ
@@ -95,23 +104,72 @@ MON_INIT:	LIA   3
 		MVB			; KL = (35,36)
 MON_LOOP1:	CALL  LINE_PRINT	; 1行出力
 		LOOP  MON_LOOP1
+		CALL  CURSOR_ON		; カーソルON
 
 		; ----------------------- メインループ -----------------------
 MON_LOOP2:	CALL  KEY_REPEAT
-		CPIA  Key_CLS		; CLSキーで終了
+		CPIA  ASC_CLS		; CLSキーで終了
 		JRZP  MON_END
-		CPIA  Key_UP		; ↑キー
+		CPIA  ASC_UP		; ↑キー
 		JRZP  MON_UP
-		CPIA  Key_DOWN		; ↓キー
+		CPIA  ASC_DOWN		; ↓キー
 		JRZP  MON_DOWN
-		CPIA  Key_ENTER		; ENTERキーは
-		JRZP  MON_DOWN		;   ↓キーと同じ
-		CPIA  Key_MODE		; MODEキー
+		CPIA  ASC_LEFT		; ←キー
+		JRZP  MON_LEFT
+		CPIA  ASC_RIGHT		; →キー
+		JRZP  MON_RIGHT
+		CPIA  ASC_ENTER		; ENTERキー
+		JRZP  MON_ENTER
+		CPIA  ASC_MODE		; MODEキー
 		JRZP  MON_MODE
+		LP    $2E
+		TSIM  $02
+		JRZM  MON_LOOP2		; 閲覧モードならループ
+
+		CPIA  HEX_A
+		JRNZP MAIN_SKIP1
+		LIA   'A'
+MAIN_SKIP1:	CPIA  HEX_B
+		JRNZP MAIN_SKIP2
+		LIA   'B'
+MAIN_SKIP2:	CPIA  HEX_C
+		JRNZP MAIN_SKIP3
+		LIA   'C'
+MAIN_SKIP3:	CPIA  HEX_D
+		JRNZP MAIN_SKIP4
+		LIA   'D'
+MAIN_SKIP4:	CPIA  HEX_E
+		JRNZP MAIN_SKIP5
+		LIA   'E'
+MAIN_SKIP5:	CPIA  HEX_F
+		JRNZP MAIN_SKIP6
+		LIA   'F'
+
+MAIN_SKIP6:	CPIA  '0'		; 1～9,A～Fキー
+		JRCM  MON_LOOP2
+		CPIA  ':'		; 9の次
+		JRCP  MAIN_JMP1
+		CPIA  'A'
+		JRCM  MON_LOOP2
+		CPIA  'G'
+		JRCP  MAIN_JMP2
+		JRM   MON_LOOP2
+MAIN_JMP1:	SBIA  $30
+		JRP   INPUT
+MAIN_JMP2:	SBIA  $37
+		JRP   INPUT
+
+		; --------------------- ENTERキー処理 ---------------------
+MON_ENTER:	CALL  CURSOR_OFF	; カーソルOFF
+		LP    $2E
+		TSIM  $02		; 閲覧モードなら
+		JRZP  MON_DOWN		;     ↓キー処理へ
+		ANIM  $F9		; 閲覧モードにする
 		JRM   MON_LOOP2
 
 		; ----------------------- ↓キー処理 -----------------------
-MON_DOWN:	LIB   $00
+MON_DOWN:	CALL  CURSOR_OFF	; カーソルOFF
+		LIB   $00
 		LIA   $08
 		LP    $35
 		ADB			; (35,36) += 8
@@ -123,10 +181,12 @@ MON_DOWN:	LIB   $00
 		ADB			; KL += 24
 		CALL  SCROLL_UP
 		CALL  LINE_PRINT	; 1行出力
+		CALL  CURSOR_ON		; カーソルON
 		JRM   MON_LOOP2
 
 		; ----------------------- ↑キー処理 -----------------------
-MON_UP:		LIB   $00
+MON_UP:		CALL  CURSOR_OFF	; カーソルOFF
+		LIB   $00
 		LIA   $08
 		LP    $35
 		SBB			; (35,36) -= 8
@@ -135,7 +195,53 @@ MON_UP:		LIB   $00
 		MVB			; KL = (35,36)
 		CALL  SCROLL_DOWN
 		CALL  LINE_PRINT	; 1行出力
+		CALL  CURSOR_ON		; カーソルON
 		JRM   MON_LOOP2
+
+		; ----------------------- ←キー処理 -----------------------
+MON_LEFT:	LP    $2E
+		TSIM  $02
+		JRZP  LEFT_JMP1		; 編集モードならば
+		CALL  CURSOR_OFF	;     カーソルOFF
+		LP    $2F
+		SBIM  1			;     編集用ニブル1つ右へ
+		JRNCP LEFT_JMP2		;     右端までいったら
+		LIA   15
+		EXAM			;         (2F) = 15
+		JRM   MON_UP		;         ↑キー処理へ
+LEFT_JMP1:	ORIM  $02		; 編集モードにする
+		LP    $2F
+		LIA   15
+		EXAM			; (2F) = 15
+LEFT_JMP2:	CALL  CURSOR_ON		; カーソルON
+		JRM   MON_LOOP2
+
+		; ----------------------- →キー処理 -----------------------
+MON_RIGHT:	LP    $2E
+		TSIM  $02
+		JRZP  RIGHT_JMP1	; 編集モードならば
+		CALL  CURSOR_OFF	;     カーソルOFF
+		LP    $2F
+		ADIM  1			;     編集用ニブル1つ右へ
+		CPIM  16
+		JRCP  RIGHT_JMP2	;     右端までいったら
+		ANIM  0			;         (2F) = 0
+		JRM   MON_DOWN		;         ↓キー処理へ
+RIGHT_JMP1:	ORIM  $02		; 編集モードにする
+		LP    $2F
+		ANIM  0			; (2F) = 0
+RIGHT_JMP2:	CALL  CURSOR_ON		; カーソルON
+		JRM   MON_LOOP2
+
+		; ----------------------- MODEキー処理 -----------------------
+MON_MODE:	LP    $2E
+		TSIM  $01
+		JRZP  MODE_JMP1		; 編集モードならば
+		ANIM  $FE		;     MODE = 0
+		JRP   MODE_JMP2
+MODE_JMP1:	ORIM  $01		;     MODE = 1
+MODE_JMP2:	CALL  CSR_CLEAR		; カーソル座標クリア
+		JRM   MON_INIT
 
 		; ----------------------- CLSキー処理 -----------------------
 MON_END:	CALL  CLS_START		; 画面クリア
@@ -143,17 +249,54 @@ MON_END:	CALL  CLS_START		; 画面クリア
 		RC
 		RTN   			; BASICへ
 
-		; ----------------------- MODEキー処理 -----------------------
-MON_MODE:	LP    $2F
-		TSIM  $FF
-		JRZP  MODE_JMP1
-		ANIM  0			; MODE = 0
-		JRP   MODE_JMP2
-MODE_JMP1:	ORIM  1			; MODE = 1
-MODE_JMP2:	CALL  CSR_CLEAR		; カーソル座標クリア
-		JRM   MON_INIT
+		; --------------------- 0-9,A-Fキー処理 ---------------------
+INPUT:		PUSH
+		LIQ   $35
+		LP    K_Reg
+		MVB			; KL = (35,36)
+		LP    $2F
+		LDM
+		RC
+		SR			; A = ニブル位置 / 2
+		ADIA  $0F
+		LIB   0
+		LP    K_Reg
+		ADB			; KL = KL + $10
+		LP    X_Reg
+		LIQ   K_Reg
+		MVB
+		POP
+		LP    $2F
+		TSIM  1
+		JRNZP INPUT_JMP1
+		SWP
+		LIDP  INPUT_VALUE1 + 1
+		STD
+		IX
+		ANID  $0F
+INPUT_VALUE1:	ORID  $00
+		JRP   INPUT_JMP2
+INPUT_JMP1:	LIDP  INPUT_VALUE2 + 1
+		STD
+		IX
+		ANID  $F0
+INPUT_VALUE2:	ORID  $00
+INPUT_JMP2:	LP    $2E
+		TSIM  $01
+		JRNZP INPUT_JMP3
+		CALL  CHECK_SUM		; チェックサム再計算
+		CALL  GRAPH_PRINT	; グラフィック再表示
+		JRM   MON_RIGHT
+INPUT_JMP3:	CALL  CHAR_PRINT	; キャラクタ再表示
+		JRM   MON_RIGHT
 
-		; ----------------------- 1行表示 -----------------------
+
+
+		; =======================================================
+		; 1行出力
+		;
+		; 入力 KL = 左端のアドレス
+		; =======================================================
 LINE_PRINT:	LP    $37
 		ANIM  0			; チェックサム初期化
 		LIA   7
@@ -170,7 +313,7 @@ LPRINT_LOOP1:	CALL  BYTE_READ		; 1バイト読み込み
 		LP    $37
 		ADM			; チェックサム加算
 		CALL  BYTE_PRINT	; 1バイト出力
-		LP    $2F
+		LP    $2E
 		TSIM  $01		; MODE = 1 なら
 		JRNZP LPRINT_JMP1	;     '-'を出力しない
 		LDR
@@ -180,7 +323,7 @@ LPRINT_LOOP1:	CALL  BYTE_READ		; 1バイト読み込み
 		LIA   '-'
 		CALL  CHAR		; '-'出力
 LPRINT_JMP1:	LOOP  LPRINT_LOOP1
-		LP    $2F
+		LP    $2E
 		TSIM  $01		; MODE = 1 なら
 		JRNZP LPRINT_JMP2	;     キャラクタ表示へ
 
@@ -189,21 +332,19 @@ LPRINT_JMP1:	LOOP  LPRINT_LOOP1
 		LP    $37
 		LDM
 		CALL  BYTE_PRINT	; チェックサム出力
+
 		LIA   ' '
 		CALL  CHAR		; ' '出力
 		LIA   '['
 		CALL  CHAR		; '['出力
-		LIQ   K_Reg
-		LP    X_Reg
-		MVB			; X = KL
 		LIB   0
-		LIA   9
-		LP    X_Reg
-		SBB			; X = X - 9
+		LIA   $08
+		LP    K_Reg
+		SBB
 		LIA   7
 		PUSH
-LPRINT_LOOP2:	IXL
-		IYS
+LPRINT_LOOP2:	CALL  BYTE_READ
+		IYS			; グラフィック出力
 		LOOP  LPRINT_LOOP2
 		LP    $30
 		ADIM  2			; X座標+2
@@ -213,19 +354,14 @@ LPRINT_LOOP2:	IXL
 
 LPRINT_JMP2:	LIA   '|'
 		CALL  CHAR		; '|'出力
-		LIQ   K_Reg
-		LP    X_Reg
-		MVB			; X = KL
 		LIB   0
-		LIA   9
-		LP    X_Reg
-		SBB			; X = X - 9
+		LIA   $08
+		LP    K_Reg
+		SBB
 		LIA   7
 		PUSH
-LPRINT_LOOP3:	IXL
-		CAL   XTO38
+LPRINT_LOOP3:	CALL  BYTE_READ		; 1バイト読み込み
 		CALL  CHAR		; キャラクタ表示
-		CAL   R38TOX
 		LOOP  LPRINT_LOOP3
 		RTN
 
@@ -245,9 +381,89 @@ HEX_JMP2:	SC
 
 
 		; =======================================================
+		; チェックサム計算＆出力
+		;
+		; 3行目のチェックサムを再計算し表示する
+		; =======================================================
+CHECK_SUM:	LP    $37
+		ANIM  0			; チェックサム初期化
+		LP    K_Reg
+		LIQ   $35
+		MVB			; KL = (35,36)
+		LIB   0
+		LIA   $10
+		LP    K_Reg
+		ADB			; KL = (35,36) + $10
+		LIA   7
+		PUSH
+CHECK_LOOP1:	CALL  BYTE_READ		; 1バイト読み込み
+		LP    $37
+		ADM			; チェックサム加算
+		LOOP  CHECK_LOOP1
+		LP    $30
+		LIA   $17
+		EXAM			; X座標 = 23
+		LP    $37
+		LDM
+		CALL  BYTE_PRINT	; チェックサム出力
+		RTN
+
+
+
+		; =======================================================
+		; キャラクタ出力
+		;
+		; 3行目のキャラクタを再表示する
+		; =======================================================
+CHAR_PRINT:	LP    K_Reg
+		LIQ   $35
+		MVB			; KL = (35,36)
+		LIB   0
+		LIA   $10
+		LP    K_Reg
+		ADB			; KL = (35,36) + $10
+		LIA   7
+		PUSH
+		LP    $30
+		LIA   $16
+		EXAM			; X座標 = 26
+CHARA_LOOP1:	CALL  BYTE_READ		; 1バイト読み込み
+		CALL  CHAR		; キャラクタ表示
+		LOOP  CHARA_LOOP1
+		RTN
+
+
+
+		; =======================================================
+		; グラフィック出力
+		;
+		; 3行目のグラフィックを再表示する
+		; =======================================================
+GRAPH_PRINT:	LP    K_Reg
+		LIQ   $35
+		MVB			; KL = (35,36)
+		LIB   0
+		LIA   $10
+		LP    K_Reg
+		ADB			; KL = (35,36) + $10
+		LP    $30
+		LIA   $1B
+		EXAM			; X座標 = 26
+		CALL  VRAM1_ADR
+		LIA   7
+		PUSH
+GRAPH_LOOP1:	CALL  BYTE_READ		; 1バイト読み込み
+		IYS
+		LOOP  GRAPH_LOOP1
+		RTN
+
+
+
+		; =======================================================
 		; 1バイトデータ読み出し(オートインクリメント)
 		;
 		; 入力 KL = アドレス(LH)
+		; 出力 A = 読み出し値
 		; 破壊レジスタ I,A,B,P,Q,DP
 		; =======================================================
 BYTE_READ:	LII   0
@@ -299,8 +515,14 @@ BYTE_JMP2:	CALL  CHAR
 		; =======================================================
 CHAR:		CALL  FONTADR_CALC
 		CALL  VRAM1_ADR
-		LIB   4
-		CAL   BLOCK		; 1～4ドット出力
+		IXL			; 1～4ドット出力
+		IYS			;  LIB  4
+		IXL			;  CAL  BLOCK
+		IYS			; をループ展開したもの
+		IXL
+		IYS
+		IXL
+		IYS
 		CLRA			; 余白
 		IYS
 		CALL  CURSOR_UPDATE	; カーソル右移動
@@ -315,16 +537,17 @@ CHAR:		CALL  FONTADR_CALC
 		; 出力 X = フォントアドレス - 1
 		; 破壊レジスタ A,B,P,Q,DP
 		; =======================================================
-FONTADR_CALC:	CPIA  $F0		; F0以上なら
-		JRCP  FONT_JMP1
-		SBIA  $10		;     10減算
-FONT_JMP1:	CPIA  $A0		; A0以上なら
+FONTADR_CALC:	CPIA  $E0		; E0以上は
+		JRNCP FONT_JMP3		;     0にする
+FONT_JMP1:	CPIA  $80
 		JRCP  FONT_JMP2
-		SBIA  $20		;     20減算
+		CPIA  $A0		; A0以下は
+		JRCP  FONT_JMP3		;     0にする
+		SBIA  $20		; 20減算
 FONT_JMP2:	SBIA  $20		; 20減算
-		JRNCP FONT_JMP3
-		LIA   $00		; 00-1Fは20にする
-FONT_JMP3:	LIB   $00
+		JRNCP FONT_JMP4
+FONT_JMP3:	CLRA			; 00-1Fは20にする
+FONT_JMP4:	LIB   $00
 		LP    A_Reg
 		ADB			; BA = BA + BA (2倍)
 		LP    A_Reg
@@ -394,14 +617,36 @@ KEY_REPEAT:	CALL  INKEY_WAIT
 		TSIM  $FF		; リピートOFF(0)ならば
 		JRNZP KEY_JMP1
 		ORIM  $01		;    リピート判定中(1)に
-KEY_JMP1:	RTN			; リピート中(2)ならリターン
+KEY_JMP1:				;    ASCIIコードに変換
+		if TARGET = 1350
+			ADIA  $03	; キーテーブルが $8403～
+		else
+			ADIA  $60	; キーテーブルが $4360～
+		endif
+		LIDP  KEY_WRITE + 2
+		STD
+		if TARGET = 1360
+			LIDP  BANK_SELECT
+			LDD
+			EXAB		; B = 現在のBANK番号
+			LIA   0		; BANK1選択
+			STD
+		endif
+KEY_WRITE:	LIDP  KEY_TABLE
+		LDD
+		if TARGET = 1360
+			LP    B_Reg
+			LIDP  BANK_SELECT
+			MVDM		; BANK復帰
+		endif
+		RTN			; リピート中(2)ならリターン
 
 					; リピート判定
-KEY_JMP2:	CPIA  Key_ENTER		; リピート除外キー
+KEY_JMP2:	CPIA  Inkey_ENTER		; リピート除外キー
 		JRZM  KEY_REPEAT
-		CPIA  Key_MODE		; リピート除外キー
+		CPIA  Inkey_MODE		; リピート除外キー
 		JRZM  KEY_REPEAT
-		CPIA  Key_SHIFT
+		CPIA  Inkey_SHIFT
 		JRZM  KEY_REPEAT
 		LIA   $03
 		CAL   OUTC		; カウンタリセット
@@ -413,12 +658,12 @@ KEY_LOOP1:	CALL  INKEY_WAIT
 		JRZM  KEY_LOOP1		; 500ms待ち
 		ANIM  $00
 		ORIM  $02		;     リピート中(2)にする
-		RTN
+		JRM   KEY_JMP1
 
 
 
 		; =======================================================
-		; 入力待ちキー入力
+		; リアルタイムキー入力
 		;
 		; 出力 A = キーコード
 		; 破壊レジスタ I,A,P,Q,DP
@@ -439,11 +684,97 @@ INKEY_JMP1:	LP    $32		; キーリピートOFF(0)
 		ADCM			; (34) = (34) + 0 + 1
 		LP    $33
 		ADCM			; (33) = (33) + C
-		CPIM  200		; 200*1.5s=300秒でオートパワーオフ
-		JRCM  INKEY_WAIT
-		CALL  TIMER_RESET	;     オートパワーオフタイマーリセット
+		CPIM  200		; 200*1.5s = 300秒で
+		JRNCP POWER_OFF		;     オートパワーオフへ
+		LP    $2E
+		TSIM  $02		; bit1 = 0
+		JRZM  INKEY_WAIT	; 閲覧モードならループ
+		TEST  $01
+		JRZM  INKEY_WAIT	; 500ms待ち
+		LP    $2E
+		TSIM  $04
+		JRZP  INKEY_JMP2	; カーソルONならば
+		CALL  CURSOR_OFF	;     カーソル表示OFF
+		RTN
+INKEY_JMP2:	CALL  CURSOR_ON		;     カーソル表示ON
+		RTN
+POWER_OFF:	CALL  TIMER_RESET	; オートパワーオフタイマーリセット
 		LIA   $0C
-		CAL   OUTC		;     パワーオフ(OUTC ← $0C)
+		CAL   OUTC		; パワーオフ(OUTC ← $0C)
+		RTN
+
+
+
+		; =======================================================
+		; カーソルON
+		; 入力 (30,31) カーソル座標
+		; =======================================================
+CURSOR_ON:	LP    $2E
+		TSIM  $02
+		JRNZP CSRON_JMP1	; 閲覧モードならば
+		RTN			;     リターン
+CSRON_JMP1:	ORIM  $04		; カーソルONにする
+		LP    $31
+		LIA   2
+		EXAM			; (31) = 2  (Y座標)
+		LP    $2F
+		LDM
+		LP    $30
+		EXAM			; (30) = (2F)
+		LP    $2E
+		TSIM  $01
+		JRNZP CSRON_JMP2
+		LP    $30
+		CPIM  8
+		JRCP  CSRON_JMP2
+		ADIM  1
+CSRON_JMP2:	LP    $30
+		ADIM  5			; (30) = (30) + 5
+		LIA   $A0
+		CALL  CHAR		; ベタ出力
+		RTN
+
+
+
+		; =======================================================
+		; カーソルOFF
+		; 入力 (30,31) カーソル座標
+		; =======================================================
+CURSOR_OFF:	LP    $2E
+		TSIM  $02
+		JRNZP CSROFF_JMP1	; 閲覧モードならば
+		RTN			;     リターン
+CSROFF_JMP1:	ANIM  $FB		; カーソルOFFにする
+		LP    $31
+		LIA   2
+		EXAM			; (31) = 2  (Y座標)
+		LP    $2F
+		LDM
+		LP    $30
+		EXAM			; (30) = (2F)
+		ANIM  $FE		; 上位ニブル位置にする
+		LP    $2E
+		TSIM  $01
+		JRNZP CSROFF_JMP2
+		LP    $30
+		CPIM  8
+		JRCP  CSROFF_JMP2
+		ADIM  1
+CSROFF_JMP2:	LP    $30
+		ADIM  5			; (30) = (30) + 5
+		LIQ   $35
+		LP    K_Reg
+		MVB			; KL = (35,36)
+		LP    $2F
+		LDM
+		RC
+		SR			; A = ニブル位置 / 2
+		ADIA  $10
+		LIB   0
+		LP    K_Reg
+		ADB			; KL = KL + $10
+		CALL  BYTE_READ
+		CALL  BYTE_PRINT
 		RTN
 
 
@@ -608,11 +939,11 @@ CSR_CLEAR:	CLRA
 CURSOR_UPDATE:	LP    $30
 		ADIM  1			; X座標+1
 		CPIM  30
-		JRCP  CURSOR_JMP1
+		JRCP  CSRUP_JMP1
 		ANIM  0
 		LP    $31
 		ADIM  1
-CURSOR_JMP1:	RTN
+CSRUP_JMP1:	RTN
 
 
 

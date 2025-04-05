@@ -52,6 +52,7 @@ CSRX		equ   $FD09	; CURSOR X座標(0-24)
 CSRY		equ   $FD0A	; CURSOR Y座標(0-3)
 VRAM		equ   $2800	; VRAMアドレス
 FONT_ADR	equ   $418B	; キャラクタフォントアドレス(BANK1)
+KEY_TABLE	equ   $4360	; キーテーブル(BANK1)
 INDICATOR_ADR   equ   $303C     ; MODEインジケータ
 BANK_SELECT	equ   $3400	; ROMバンク選択I/Oポート
 
@@ -76,16 +77,32 @@ OUTC_Port	equ   $5F
 ; =================================================================
 ; INKEYコード
 ; =================================================================
-Key_SPC		equ   $08
-Key_CLS		equ   $04
-Key_MODE	equ   $44
-Key_ENTER	equ   $0D
-Key_RIGHT	equ   $43
-Key_LEFT	equ   $42
-Key_DOWN	equ   $3C
-Key_UP		equ   $3B
-Key_BREAK	equ   $46
-Key_SHIFT       equ   $15
+Inkey_SPC	equ   $08
+Inkey_CLS	equ   $04
+Inkey_INS	equ   $09
+Inkey_ENTER	equ   $0D
+Inkey_LEFT	equ   $42
+Inkey_RIGHT	equ   $43
+Inkey_DOWN	equ   $3C
+Inkey_UP	equ   $3B
+Inkey_SHIFT	equ   $15
+Inkey_BREAK	equ   $46
+Inkey_MODE	equ   $44
+
+; =================================================================
+; BASIC内部コード
+; =================================================================
+ASC_SPC		equ   $20
+ASC_CLS		equ   $02
+ASC_MODE	equ   $08
+ASC_ENTER	equ   $0D
+ASC_RIGHT	equ   $0E
+ASC_LEFT	equ   $0F
+ASC_DOWN	equ   $05
+ASC_UP		equ   $04
+ASC_BREAK	equ   $07
+ASC_SHIFT	equ   $10
+ASC_DEF		equ   $12
 
 ; =================================================================
 ; その他
