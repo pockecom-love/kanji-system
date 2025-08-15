@@ -1,10 +1,11 @@
 ; +========================================================+
 ; |  ポケットコンピュータ PC-1350/60/60K 漢字表示システム  |
+; |                           Version 2.00                 |
 ; |                           (C) けいくん＠ちた           |
 ; |                           (X account @pockecom_love)   |
 ; |                                                        |
 ; |  [表示モード]    25桁4行, 30桁4行, 37桁4行             |
-; |  [漢字フォント]  5x7dot, 7x7dot, 11x7dot               |
+; |  [漢字フォント]  7x7dot, 11x7dot (5dotフォント非対応)  |
 ; |  [半角フォント]  4x7dot, 5x7dot                        |
 ; |                                                        |
 ; |  [一次配布サイト]                                      |
@@ -22,9 +23,9 @@
 		; =======================================================
 		; 設定
 		; =======================================================
-TARGET		equ   1360	; PC-1350は 1350、PC-1360/60Kは 1360 を指定
-KANJI		equ   7		; 漢字フォントの横ドット数(5 or 7 or 11)を指定
-COLUMN		equ   37	; 桁数(25 or 30 or 37)を指定
+TARGET		equ   1350	; PC-1350は 1350、PC-1360/60Kは 1360 を指定
+KANJI		equ   7		; 漢字フォントの横ドット数(7 or 11)を指定
+COLUMN		equ   30	; 桁数(25 or 30 or 37)を指定
 				;  (11ドット漢字フォント使用時は37指定不可)
 FONT		equ   1		; フォント読み込み…1
 TEXT		equ   1		; テキストデータ読み込み…1
@@ -45,12 +46,12 @@ PRINT_FLAG	equ   0		; 拡張PRINT文(1…有効) ※ PC-1350専用
 
 		if TARGET = 1350
 LOAD_ADR		equ   $2032	; オブジェクトロードアドレス
-TOOL_ADR		equ   $6A90	; ツール先頭アドレス
+TOOL_ADR		equ   $6A72	; ツール先頭アドレス
 LINENUMBER_BUF		equ   $6D00	; [TOOL3]行番号ポインタバッファ
 LINE_MAX		equ   127	; [TOOL3]最大行番号(4～255)
 		else
 LOAD_ADR		equ   $8040
-TOOL_ADR		equ   $F600
+TOOL_ADR		equ   $F720
 LINENUMBER_BUF		equ   $FB00
 LINE_MAX		equ   255
 		endif
@@ -76,34 +77,24 @@ LINE_MAX		equ   255
 ASCII4_FONT			equ   LOAD_ADR
 			endif
 
-			; 5ドット漢字フォント読み込み
-			if KANJI = 5
-				if FONT = 1
-					include(kanji5_font.s)
-				else
-KANJI_FONT				equ   LOAD_ADR + $0280
-				endif
-END_CODE			equ   $4F54		; 全角フォント最終JISコード + 1
-			endif
-
 			; 7ドット漢字フォント読み込み
 			if KANJI = 7
 				if FONT = 1
-					include(kanji7_font_1350.s)
+					include(kanji7_font_1350_v2.s)
 				else
 KANJI_FONT				equ   LOAD_ADR + $0280
 				endif
-END_CODE			equ   $4635		; 全角フォント最終JISコード + 1
+END_CODE			equ   $4A6F		; 全角フォント最終JISコード + 1
 			endif
 
 			; 11ドット漢字フォント読み込み
 			if KANJI = 11
 				if FONT = 1
-					include(kanji11_font_1350.s)
+					include(kanji11_font_1350_v2.s)
 				else
 KANJI_FONT				equ   LOAD_ADR + $0280
 				endif
-END_CODE			equ   $3B60		; 全角フォント最終JISコード + 1
+END_CODE			equ   $3D7C		; 全角フォント最終JISコード + 1
 			endif
 		endif
 
@@ -121,20 +112,10 @@ END_CODE			equ   $3B60		; 全角フォント最終JISコード + 1
 ASCII4_FONT			equ   LOAD_ADR
 			endif
 
-			; 5ドット漢字フォント読み込み
-			if KANJI = 5
-				if FONT = 1
-					include(kanji5_font.s)
-				else
-KANJI_FONT				equ   LOAD_ADR + $0280
-				endif
-END_CODE			equ   $4F54		; 全角フォント最終JISコード + 1
-			endif
-
 			; 7ドット漢字フォント読み込み
 			if KANJI = 7
 				if FONT = 1
-					include(kanji7_font_1360.s)
+					include(kanji7_font_1360_v2.s)
 				else
 KANJI_FONT				equ   LOAD_ADR + $0280
 				endif
@@ -144,11 +125,11 @@ END_CODE			equ   $4F54		; 全角フォント最終JISコード + 1
 			; 11ドット漢字フォント読み込み
 			if KANJI = 11
 				if FONT = 1
-					include(kanji11_font_1360.s)
+					include(kanji11_font_1360_v2.s)
 				else
 KANJI_FONT				equ   LOAD_ADR + $0280
 				endif
-END_CODE			equ   $457F		; 全角フォント最終JISコード + 1
+END_CODE			equ   $4979		; 全角フォント最終JISコード + 1
 			endif
 		endif
 		list
@@ -217,9 +198,9 @@ ALL_LOOP2:
 			CALL  KEY_REPEAT	; キー入力(キーリピート付き)
 			CPIA  Inkey_CLS		; CLSキー
 			JRZP  ALL_JMP2		;     終了
-			CPIA  Inkey_DOWN		; ↓キー
+			CPIA  Inkey_DOWN	; ↓キー
 			JRZP  ALL_JMP1
-			CPIA  Inkey_ENTER		; Enterキー
+			CPIA  Inkey_ENTER	; Enterキー
 			JRZP  ALL_JMP1
 			JRM   ALL_LOOP2
 		endif
@@ -235,12 +216,7 @@ ALL_JMP2:	RTN
 		;
 		; 入力 (30,31) = JISコード
 		; =======================================================
-JIS_LINE:
-		if (KANJI = 5) & (COLUMN = 25)	; 漢字5ドットフォントの場合
-			LIA   COLUMN - 1
-		else				; 漢字7or11ドットフォントの場合
-			LIA   COLUMN / 2 - 1
-		endif
+JIS_LINE:	LIA   COLUMN / 2 - 1
 		PUSH			; 1行分ループ
 		LP    A_Reg
 		LIQ   $30
@@ -294,7 +270,7 @@ JISPRT_JMP1:	POP			; B復帰
 		CPIA  $26		; A = 26 ならば
 		JRNZP JISPRT_JMP2
 		ADIA  10		;     A = A + 10 (26～2F区はスキップ)
-JISPRT_JMP2:	CPIA  $3B		; 3Bになったら
+JISPRT_JMP2:	CPIA  $3B		; $3C00になったら
 		JRCP  JISPRT_JMP3
 		SC			;     C = 1
 		RTN
@@ -349,11 +325,11 @@ TEXT_JMP2:	CALL  KEY_REPEAT
 		JRZP  TEXT_END
 		CPIA  Inkey_UP		; ↑キー
 		JRZP  TEXT_UP
-		CPIA  Inkey_DOWN		; ↓キー
+		CPIA  Inkey_DOWN	; ↓キー
 		JRZP  TEXT_DOWN
-		CPIA  Inkey_ENTER		; ENTERキーは
+		CPIA  Inkey_ENTER	; ENTERキーは
 		JRZP  TEXT_DOWN		;   ↓キーと同じ
-		CPIA  Inkey_SHIFT		; SHIFTキー
+		CPIA  Inkey_SHIFT	; SHIFTキー
 		JRZP  TEXT_SHIFT
 		JRM   TEXT_JMP2
 
@@ -468,6 +444,7 @@ LPRINT_JMP2:	CPIA  $0D		; 0Dは単にスキップ
 			CALL  CHAR	;     半角1文字表示
 			CAL   R38TOX	;     X = (38,39)
 		endif
+
 LPRINT_JMP3:	LIDP  CSRX
 		ANID  0			;     X座標 = 0
 		LIDL  CSRY & $FF
@@ -496,14 +473,10 @@ LRPINT_JMP8:	CAL   R38TOX		; X = (38,39)
 LPRINT_JMP6:	EXAB
 		LIDP  CSRX
 		LDD
-		if (KANJI = 5) & (COLUMN = 25)	; 漢字5ドットフォントの場合
-			CPIA  COLUMN 		; X座標が右端ならば
-		else				; 漢字7or11ドットフォントの場合
-			CPIA  COLUMN - 1	; 全角右半分が画面からはみ出る場合
-		endif
+		CPIA  COLUMN - 1	; 全角右半分が画面からはみ出る場合
 		JRCP  LPRINT_JMP7
-		DX				;     1バイト戻す
-		JRM   LPRINT_JMP3		;     改行してリターン
+		DX			;     1バイト戻す
+		JRM   LPRINT_JMP3	;     改行してリターン
 LPRINT_JMP7:	IXL			; 2バイト目読み込み
 		EXAB			; A=第1バイト,B=第2バイト
 		CAL   XTO38		; (38,39) = X
@@ -592,7 +565,7 @@ BENCH_LOOP1:	CALL  STRING_PRINT
 
 
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-;■ 　         以下、漢字システム本体、おまけ、拡張PRINT文         　　■
+;■ 　                      漢字表示システム本体                   　　■
 ;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
 		; =======================================================
@@ -635,49 +608,46 @@ CHAR_JMP6:	LIDP  CSRX
 		JRCP  CHAR_JMP3
 		CALL  CURSOR_UPDATE	;     カーソル右移動
 CHAR_JMP3:
+		if TARGET = 1360
+			LIDP  BANK_SELECT
+			LDD
+			PUSH		; 現在のBANK保存
+			LIA   1		; BANK1選択
+			STD
+		endif
+
 		if COLUMN = 25
-			CALL  VRAM1_ADR
+			LIA   4		; 5ドット出力
+		else
+			LIA   3		; 4ドット出力
+		endif
+		PUSH
 
-			if TARGET = 1350
-				CAL   PRINT1		; 1～5ドット出力+余白
-			else
-				LIDP  BANK_SELECT
-				LDD
-				PUSH			; 現在のBANK保存
-				LIA   1			; BANK1選択
-				STD
-				LIB   5
-				CAL   BLOCK		; 1～5ドット出力
-				POP
-				LIDP  BANK_SELECT
-				STD			; BANK復帰
-				CLRA			; 余白
-				IYS
-			endif
+		CALL  CSR2GCSR		; 文字座標→グラフィック座標
+		CALL  VRAM2_ADR		; VRAMアドレス算出
+CHAR_LOOP1:
+		if (TARGET = 1350) & (COLUMN = 25)
+			DXL		; フォント読み込み(逆順)
+		else
+			IXL		; フォント読み込み
+		endif
+		IYS			; ドット出力
+		INCK			; X座標+1
+		DECN
+		JRNZP CHAR_JMP4		; VRAM境界判定
+		CALL  VRAM2_ADR		;     VRAMアドレス再計算
+CHAR_JMP4:	LOOP  CHAR_LOOP1
+
+		if TARGET = 1360
+			LIDP  BANK_SELECT
+			POP
+			STD		; BANK復帰
 		endif
 
-		if COLUMN = 30
-			CALL  VRAM1_ADR
-			LIB   4
-			CAL   BLOCK		; 1～4ドット出力
-			CLRA			; 余白
+		if COLUMN <> 37
+			CLRA		; 余白1ドット
 			IYS
 		endif
-
-		if COLUMN = 37
-			LIA   3			; 4回ループ
-			PUSH
-			CALL  CSR2GCSR		; 座標→グラフィック座標
-			CALL  VRAM2_ADR		; VRAMアドレス算出
-CHAR_LOOP1:		IXL			; 1～4ドット出力
-			IYS
-			INCK			; X座標+1
-			DECN
-			JRNZP CHAR_JMP4		; VRAM境界判定
-			CALL  VRAM2_ADR		;     VRAMアドレス再計算
-CHAR_JMP4:		LOOP  CHAR_LOOP1
-		endif
-
 		CALL  CURSOR_UPDATE	; カーソル右移動
 		RTN
 
@@ -725,7 +695,7 @@ FONT_JMP3:	LIB   $00
 			LIA   FONT_ADR & $FF	; 内蔵キャラクタフォントアドレス
 			LP    X_Reg
 			ADB			; X = X + BA
-			if TARGET <> 1350
+			if TARGET = 1360
 				DX
 			endif
 		else				; 30,37桁の場合
@@ -750,7 +720,7 @@ FONT_JMP3:	LIB   $00
 		; 入力 AB = 文字コード(JIS or ShiftJIS)
 		;      (CSRX) = X座標
 		;      (CSRY) = Y座標
-		; 破壊レジスタ A,B,X,Y,P,Q,DP
+		; 破壊レジスタ A,B,X,Y,P,Q,DP,(36)
 		; =======================================================
 KANJI_CHAR:	CPIA  $81		; 第1バイトが81以上なら
 		JRCP  KANJI_JMP1
@@ -776,113 +746,73 @@ KANJI_JMP4:	CALL  KFONTADR_CALC	; フォントアドレス計算
 
 		LIDP  CSRX
 		LDD
-		if (KANJI = 5) & (COLUMN = 25)	; 漢字5ドットフォントの場合
-			CPIA  COLUMN 		; X座標が右端ならば
-		else				; 漢字7or11ドットフォントの場合
-			CPIA  COLUMN - 1	; 全角右半分が画面からはみ出る場合
-		endif
+		CPIA  COLUMN - 1	; 全角右半分が画面からはみ出る場合
 		JRCP  KANJI_JMP5
 		CALL  CARRIAGE_RETURN
+KANJI_JMP5:	LIA   KANJI - 2		; 11ドット漢字フォント → 10ドット出力
+		PUSH			; (7ドット漢字フォント →  6ドット出力)
+		CALL  CSR2GCSR		; 文字座標→グラフィック座標
+		CALL  VRAM2_ADR		; VRAMアドレス算出
+KANJI_LOOP1:	IXL			; 1ドット分読み込み
 
-KANJI_JMP5:
-		if (COLUMN = 25) | (COLUMN = 30)	; 25,30桁の場合
-			if KANJI = 5			; 漢字5ドットフォントの場合
-				CALL  VRAM1_ADR
-				LIB   5			; 1～5ドット目
-				CAL   BLOCK
-				if COLUMN = 25		; 25桁モードでは全角の文字幅は半角と同じ
-					CLRA		; 余白
-					IYS
-				else			; 30桁モード時
-					CLRA		; 余白
-					IY
-					LII   3
-					FILD
-					CALL  CURSOR_UPDATE	; カーソル右移動(全角左半分)
-				endif
-			else
-				CALL  VRAM1_ADR		; 左半分
-				if COLUMN = 25
-					LIB   6		; 1～6ドット目
-				endif
-				if COLUMN = 30
-					LIB   5		; 1～5ドット目
-				endif
-				CAL   BLOCK
-				CALL  CURSOR_UPDATE	; カーソル右移動(全角左半分)
+		PUSH
+		; RC
+		TSIA  $80		; 最下位ビットが 1 か？
+		JRZP  KANJI_JMP7
+		SC			;     C = 1
+KANJI_JMP7:	LP    $36
+		LDM			; A = (36)
+		SL			; A = A * 2 + C
+		EXAM			; (36) = A
+		POP
+		ANIA  $7F		; 最下位ビットを 0 にする
+		CALL  KANJI_SUB1
+		LOOP  KANJI_LOOP1
 
-				CALL  VRAM1_ADR		; 右半分
-				if KANJI = 7
-					if COLUMN = 25	; 漢字7ドットフォント、25桁の場合
-						IXL		; 7ドット目
-						IYS
-						CLRA		; 余白5ドット
-						IY
-						LII   4
-						FILD
-					endif
-					if COLUMN = 30	; 漢字7ドットフォント、30桁の場合
-						IXL		; 6,7ドット目
-						IYS
-						IXL
-						IYS
-						CLRA		; 余白3ドット
-						IYS
-						IYS
-						IYS
-					endif
-				endif
-				if KANJI = 11		; 漢字11ドットフォントの場合
-					if COLUMN = 25
-						LIB   5		; 7～11ドット目
-						CAL   BLOCK
-						CLRA		; 余白1ドット
-						IYS
-					endif
-					if COLUMN = 30
-						LIB   5		; 6～10ドット目
-						CAL   BLOCK	; (11ドット目は欠落)
-					endif
-				endif
-			endif
+		LP    $36
+		LDM			; 生成した第11バイト目を取り出す
+		if KANJI = 7
+			ANIA  $3F
 		endif
-		if COLUMN = 37			; 37桁の場合
-			if KANJI = 5			; 漢字5ドットフォントの場合
-				LIA   4			;     5ドット分
-			else				; 漢字7ドットフォントの場合
-				LIA   6			;     7ドット分
-			endif
-			PUSH
-			CALL  CSR2GCSR			; 座標→グラフィック座標
-			CALL  VRAM2_ADR			; VRAMアドレス算出
-KANJI_LOOP1:		IXL				; 1～7ドット目
-			IYS
-			INCK				; X座標+1
-			DECN
-			JRNZP KANJI_JMP6		; VRAM境界判定
-			CALL  VRAM2_ADR			;     VRAMアドレス再計算
-KANJI_JMP6:		LOOP  KANJI_LOOP1
+		CALL  KANJI_SUB1
 
-			if KANJI = 5			; 漢字5ドットフォントの場合
-				LIA   2			;     余白3ドット
-				PUSH
+		if COLUMN = 25
+			if KANJI = 7
+				IY
+				LII 4
 				CLRA
-KANJI_LOOP2:			IYS
-				INCK
-				DECN
-				JRNZP KANJI_JMP7	;     VRAM境界判定
-				CALL  VRAM2_ADR		;         VRAMアドレス再計算
-KANJI_JMP7:			LOOP  KANJI_LOOP2
-			else				; 漢字7ドットフォントの場合
-				CLRA			;     余白1ドット
-				IYS
+				FILD	; 余白5ドット
 			endif
-			CALL  CURSOR_UPDATE	; カーソル右移動(全角左半分)
+			if KANJI = 11
+				CLRA
+				IYS	; 余白1ドット
+			endif
+		endif
+		if COLUMN = 30
+			if KANJI = 7
+				CLRA
+				IYS	; 余白3ドット
+				IYS
+				IYS
+			else
+					; 11ドットフォント時は余白なし
+			endif
+		endif
+		if COLUMN = 37
+			CLRA
+			IYS		; 余白1ドット
 		endif
 
+		CALL  CURSOR_UPDATE	; カーソル右移動(全角左半分)
 		CALL  CURSOR_UPDATE	; カーソル右移動(全角右半分)
 		RTN
 
+KANJI_SUB1:	IYS
+		INCK			; X座標+1
+		DECN
+		JRNZP KANJI_SUB2	; VRAM境界判定
+		CALL  VRAM2_ADR		;     VRAMアドレス再計算
+KANJI_SUB2:	RTN
 
 
 		; =======================================================
@@ -950,27 +880,21 @@ KFONT_LOOP1:	LP    X_Reg
 		LP    A_Reg
 		ADB			; BA = BA + BA (4倍)
 
-		if KANJI = 5		; 漢字5ドットフォントの場合(5倍)
+		LP    A_Reg
+		ADB			; BA = BA + BA (8倍)
+		LP    X_Reg
+		LIQ   A_Reg
+		EXB			; X <> BA
+		if KANJI = 7		; 漢字7ドットフォントの場合(Xを6倍する)
 			LP    X_Reg
-			ADB			; X = X + BA
-		else			; 漢字7or11ドットフォントの場合
-			LP    A_Reg
-			ADB			; BA = BA + BA (8倍)
+			SBB		; X = X - BA (7倍)
 			LP    X_Reg
-			LIQ   A_Reg
-			EXB			; X <> BA
-		endif
-		if KANJI = 7		; 漢字7ドットフォントの場合(Xを7倍する)
-			LP    X_Reg
-			SBB			; X = X - BA (7倍)
-		endif
-		if KANJI = 11		; 漢字11ドットフォントの場合(Xを11倍する)
+			SBB		; X = X - BA (6倍)
+		else			; 漢字11ドットフォントの場合(Xを10倍する)
 			LP    X_Reg
 			ADB			; X = X + BA ( 9倍)
 			LP    X_Reg
 			ADB			; X = X + BA (10倍)
-			LP    X_Reg
-			ADB			; X = X + BA (11倍)
 		endif
 
 		LP    X_Reg
@@ -983,93 +907,44 @@ KFONT_LOOP1:	LP    X_Reg
 
 
 		; =======================================================
-		; カーソル→グラフィック座標
+		; 文字座標 → グラフィック座標
 		;
-		; 入力 (CSRX) = X座標(0-36)
+		; 入力 (CSRX) = X座標(0-24, 0-29, 0-36)
 		;      (CSRY) = Y座標(0-3)
 		; 出力 K(08) = X座標(0-149)
 		;      L(09) = Y座標(0-3)
 		; 破壊レジスタ A,P,DP
-		;
-		; ※ 37桁モードで使用
 		; =======================================================
-		if COLUMN = 37
-
 CSR2GCSR:	LIDP  CSRY
-		LDD
 		LP    L_Reg
-		EXAM			; L = (CSRY)
+		MVMD			; L = (CSRY)
 		LIDL  CSRX & $FF
-		LDD
-		RC
-		SL
-		SL
 		LP    K_Reg
-		EXAM			; K = (CSRX) * 4
-		RTN
-
-		endif
-
-
-
-		; =======================================================
-		; VRAMアドレス算出(1)
-		;
-		; 入力 (CSRX) = X座標(0-29)
-		;      (CSRY) = Y座標(0-3)
-		; 出力 Y = VRAMアドレス - 1
-		; 破壊レジスタ A,B,Y,P,Q,DP
-		;
-		; ※ 25,30桁モードで使用
-		; =======================================================
-		if (COLUMN = 25) | (COLUMN = 30)
-
-VRAM1_ADR:	LIB   VRAM >> 8
-		LIDP  CSRX
-		LDD
-VRAM1_LOOP1:	SBIA  COLUMN / 5	; 桁数/5 を引けるだけ引く
-		JRCP  VRAM1_JMP1
-		LP    B_Reg
-		ADIM  $02		; 桁数/5 で割った商の分だけ $200加算
-		JRM   VRAM1_LOOP1
-VRAM1_JMP1:	ADIA  COLUMN / 5	; 引きすぎた分を加算
-
-		if COLUMN = 25		; 25桁モードの場合、Aを6倍する
+		if COLUMN = 25		; 6倍
+			MVMD		; K = (CSRX)
+			LDM
 			RC
 			SL
-			PUSH		; 2倍を保存
-			SL
-			LP    Y_Reg
-			EXAM		; 4倍をYLに
-			POP
-			ADM		; 2倍 + 4倍
+			ADM		; K = K + A
 			LDM
-		else			; 25桁モードの場合、Aを5倍する
-			PUSH
-			LP    Y_Reg
-			EXAM
-			POP
+			ADM		; K = K + A
+		endif
+		if COLUMN = 30		; 5倍
+			MVMD		; K = (CSRX)
+			LDM
 			RC
 			SL
-			SL		; 4倍
-			ADM		; 1倍 + 4倍
-			LDM
+			SL		; A = A * 4
+			ADM		; K = K + A
 		endif
-
-		CAL   TOY		; Y = BA
-		LIDP  CSRY
-		LDD			; A = Y座標
-		LP    Y_Reg
-		TSIA  $01
-		JRZP  VRAM1_JMP2	; 偶数なら
-		ADIM  $40		; 	$40加算
-VRAM1_JMP2:	CPIA  2
-		JRCP  VRAM1_JMP3	; 1以上なら
-		ADIM  $1E		; 	$1E加算
-VRAM1_JMP3:	DY			; Y = Y - 1
+		if COLUMN = 37		; 4倍
+			LDD		; A = (CSRX)
+			RC
+			SL
+			SL		; A = A * 4
+			EXAM		; K = A
+		endif
 		RTN
-
-		endif
 
 
 
@@ -1081,11 +956,7 @@ VRAM1_JMP3:	DY			; Y = Y - 1
 		; 出力 Y = VRAMアドレス - 1
 		;      N = 30 - X座標 % 30  (※VRAM境界判定に利用)
 		; 破壊レジスタ A,B,Y,P,Q,DP
-		;
-		; ※ 37桁モードで使用
 		; =======================================================
-		if COLUMN = 37
-
 VRAM2_ADR:	LIB   VRAM >> 8
 		LP    K_Reg
 		LDM			; A = X座標
@@ -1114,8 +985,6 @@ VRAM2_JMP3:	DY			; Y = Y - 1
 		SBM			; N = 30 - A
 		RTN
 
-		endif
-
 
 
 		; =======================================================
@@ -1137,7 +1006,7 @@ KEY_REPEAT:	CALL  INKEY_WAIT
 KEY_JMP1:	RTN			; リピート中(2)ならリターン
 
 					; リピート判定
-KEY_JMP2:	CPIA  Inkey_ENTER		; リピート除外キー
+KEY_JMP2:	CPIA  Inkey_ENTER	; リピート除外キー
 		JRZM  KEY_REPEAT
 		CPIA  Inkey_SHIFT
 		JRZM  KEY_REPEAT
@@ -1216,7 +1085,7 @@ SCRLUP_JMP1:		CALL  KEY_REPEAT	; キー入力(キーリピート付き)
 			ADIA  6
 			STR
 			RTN
-SCRLUP_JMP3:		CPIA  Inkey_DOWN		; ↓キー
+SCRLUP_JMP3:		CPIA  Inkey_DOWN	; ↓キー
 			JRNZM SCRLUP_JMP1
 		endif
 
@@ -1419,13 +1288,17 @@ MOJI_END:	RTN
 
 
 
+;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+;■ 　                   おまけ(API、拡張BASIC命令)                　　■
+;■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+
 		; =======================================================
 		; [おまけ]文字列表示(API)
 		;
 		; 書式 78(STRING_PRINT)文字列コード...00
 		; 例） 78FA2841424300 (ABCと表示される)
 		;
-		; マシン語で文字列(半角、全角文字)を表示する。
+		; マシン語で文字列(半角、全角文字)を表示するときに使用。
 		; =======================================================
 		if STRING_FLAG = 1
 
@@ -1490,9 +1363,8 @@ CURSOR_START:	LDR
 		; 例） CALL &xxxx, "ABCｶﾝｼﾞ";33;65;&3021;&8250
 		;
 		; BASICで文字列を表示する。文字コードを指定すれば漢字も表
-		; 示可能。データ1)は文字列式を指定し、数値は指定できない
-		; ので、必要ならばSTR$で文字列化すること。なお末尾で改行
-		; は行わない。末尾セミコロンは不要。
+		; 示可能。データ1)は文字列式を指定し、数値は指定できない。
+		; 末尾で改行は行わない。末尾のセミコロンは不要。
 		; =======================================================
 		if PRINT_FLAG = 1
 
