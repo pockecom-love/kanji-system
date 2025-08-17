@@ -29,13 +29,20 @@ by **けいくん＠ちた** ([@pockecom_love](https://x.com/pockecom_love))
 
 <table>
 <tr><th>漢字フォント</th><td>11x7ドット</td><td>7x7ドット</td><td>5x7ドット</td></tr>
-<tr><th>半角フォント</th><td>5x7ドット</td><td>4x7ドット</td></tr>
+<tr><th>半角フォント</th><td>5x7ドット<br>（システムフォント）</td><td>4x7ドット</td></tr>
 </table>
 
 ## アセンブル方法 Assembly method
 
 ```
+【初期バージョン】
 SC61 kanji.s /b
+
+【V2バージョン】（フォント圧縮バージョン）
+SC61 kanji_v2.s /b
+
+【マシン語モニタ】
+SC61 monitor.s /b
 ```
 
 ## 設定 Setting
